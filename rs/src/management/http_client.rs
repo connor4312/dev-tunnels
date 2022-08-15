@@ -9,8 +9,8 @@ use serde::{de::DeserializeOwned, Serialize};
 use url::Url;
 
 use crate::contracts::{
-    env_production, Tunnel, TunnelRelayTunnelEndpoint, TunnelConnectionMode, TunnelEndpoint, TunnelPort,
-    TunnelServiceProperties,
+    env_production, Tunnel, TunnelConnectionMode, TunnelEndpoint, TunnelPort,
+    TunnelRelayTunnelEndpoint, TunnelServiceProperties,
 };
 
 use super::{
@@ -30,6 +30,12 @@ const ENDPOINTS_API_SUB_PATH: &str = "endpoints";
 const PORTS_API_SUB_PATH: &str = "ports";
 
 impl TunnelManagementClient {
+    /// Gets the user agent of this tunnel.
+    pub fn user_agent(&self) -> &str {
+        // this is ensured to succeed, since the builder only accepts a String
+        self.user_agent.to_str().unwrap()
+    }
+
     /// Lists tunnels owned by the user.
     pub async fn list_all_tunnels(
         &self,
@@ -158,7 +164,8 @@ impl TunnelManagementClient {
         let request = self
             .make_tunnel_request(Method::DELETE, url, options)
             .await?;
-        self.execute_no_response("delete_tunnel_endpoints", request).await
+        self.execute_no_response("delete_tunnel_endpoints", request)
+            .await
     }
 
     /// List a tunnel's ports.
@@ -230,7 +237,8 @@ impl TunnelManagementClient {
         let request = self
             .make_tunnel_request(Method::DELETE, url, options)
             .await?;
-        self.execute_no_response("delete_tunnel_port", request).await
+        self.execute_no_response("delete_tunnel_port", request)
+            .await
     }
 
     /// Sends the request and deserializes a JSON response
@@ -259,7 +267,7 @@ impl TunnelManagementClient {
         res
     }
 
-    /// Executes a request in which 200 status codes indicate success and 
+    /// Executes a request in which 200 status codes indicate success and
     /// 404 indicates an unsuccessful deletion but is not an error.
     async fn execute_no_response(&self, _: &'static str, request: Request) -> HttpResult<bool> {
         let url_clone = request.url().clone();
@@ -268,7 +276,7 @@ impl TunnelManagementClient {
             .execute(request)
             .await
             .map_err(HttpError::ConnectionError)?;
-        
+
         if res.status().is_success() {
             Ok(true)
         } else if res.status().as_u16() == 404 {

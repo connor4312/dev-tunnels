@@ -1,6 +1,6 @@
 use crate::contracts::Tunnel;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum TunnelLocator {
     /// Tunnel by its unique name.
     Name(String),
